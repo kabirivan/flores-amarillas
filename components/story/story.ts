@@ -22,7 +22,8 @@ const n = (text: string): Segment => ({ text, name: true })
 export function storyFor(para: string): Chapter[] {
   return [
     { id: 'semilla', line: [t('Hace tiempo, en la noche más larga, cayó una semilla de luz.')] },
-    { id: 'encuentro', line: [t('Llevaba un nombre escondido: '), n(para), t('.')] },
+    // Genérica («ti»): el nombre escondido es el de quien lo lee.
+    { id: 'encuentro', line: [t('Llevaba un nombre escondido: '), n(para === 'ti' ? 'el tuyo' : para), t('.')] },
     { id: 'cuidar', line: [t('Nadie sabía en qué se convertiría. Solo que había que cuidarla.')] },
     { id: 'lluvia', line: [t('Hubo días de lluvia…')] },
     { id: 'sol', line: [t('…y días en que el sol no se quería ir.')] },
