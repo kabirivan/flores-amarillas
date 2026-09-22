@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
 import { StoryExperience } from '@/components/story/StoryExperience'
 
-const title = 'Flores amarillas · La historia'
-const description = 'Una semilla de luz que florece con el scroll: la historia completa del ramo de flores amarillas.'
+const title = 'Estas flores son solo para ti 🌻'
+const description = 'Una semilla de luz que florece contigo hasta hacerse un ramo de girasoles. Ábrela con calma 💛'
 
 export const metadata: Metadata = {
   title,
   description,
   openGraph: { title, description, type: 'website', locale: 'es_ES', siteName: 'Flores amarillas' },
+  twitter: { card: 'summary_large_image', title, description },
 }
 
 type Props = { searchParams: Promise<{ p?: string | string[] }> }
