@@ -227,3 +227,51 @@
   color: var(--sun);
   border-color: rgb(255 210 63 / 0.5);
 }
+
+/* Invitación a deslizar: solo en pantallas táctiles, abajo y al centro. */
+.scrollHint {
+  display: none;
+}
+@media (hover: none) and (pointer: coarse) {
+  .scrollHint {
+    position: fixed;
+    left: 50%;
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    z-index: 5;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    transform: translateX(-50%);
+    color: var(--sun);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: 0;
+    animation: hint-in 0.8s var(--ease-out) 1.6s forwards;
+  }
+  .scrollHint svg {
+    filter: drop-shadow(0 0 6px rgb(255 196 107 / 0.6));
+    animation: hint-bounce 1.6s ease-in-out 2.2s infinite;
+  }
+}
+@keyframes hint-in {
+  to {
+    opacity: 0.85;
+  }
+}
+@keyframes hint-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrollHint svg {
+    animation: none;
+  }
+}
+

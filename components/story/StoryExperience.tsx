@@ -41,6 +41,8 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
   const [webgl, setWebgl] = useState<boolean | null>(null)
   const [started, setStarted] = useState(seek !== null)
   const [leaving, setLeaving] = useState(false)
+  /** Ya ha hecho scroll: la flecha que invita a deslizar se va. */
+  const [scrolled, setScrolled] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const storyRef = useRef<HTMLDivElement>(null)
   const engineRef = useRef<StoryEngine | null>(null)
@@ -100,6 +102,7 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
   const onProgress = useCallback(
     (p: number) => {
       engineRef.current?.setProgress(p)
+      if (p > 0.012) setScrolled(true)
       const { chapter } = sceneAt(p)
       if (chapter !== lastChapter.current) {
         if (chapter > lastChapter.current) cue(chapterCue(bouquet.seed, CHAPTERS[chapter]?.id ?? 'final'))
@@ -173,11 +176,25 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
             })}
           </div>
 
+          {started && seek === null && !scrolled ? <ScrollHint /> : null}
+
           <p className="visually-hidden">{`Al final de la historia: ramo de ${describeBouquet(bouquet)}.`}</p>
 
         </main>
       </LazyMotion>
     </MotionConfig>
+  )
+}
+
+/** En móvil: una flecha que rebota abajo e invita a deslizar (se va al empezar el scroll). */
+function ScrollHint() {
+  return (
+    <div className={styles.scrollHint} aria-hidden="true">
+      <span>desliza</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </div>
   )
 }
 

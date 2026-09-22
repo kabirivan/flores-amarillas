@@ -19,8 +19,18 @@ const progressParam = (raw: string | undefined): number | null => {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const name = cleanName(safeDecode((await params).nombre))
-  return { title: name ? `${name}, tienes flores amarillas 🌼` : 'Flores amarillas' }
+  const { nombre } = await params
+  const name = cleanName(safeDecode(nombre))
+  if (!name) return { title: 'Flores amarillas' }
+  // Lo que se ve al compartir el enlace (WhatsApp, iMessage…): íntimo, no técnico.
+  const title = `${name}, estas flores son solo para ti 🌻`
+  const description = `Un ramo de girasoles que crece flor a flor, pensado solo para ti, ${name}. Nadie más tiene uno igual. Ábrelo con calma 💛`
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: 'website', locale: 'es_ES', siteName: 'Flores amarillas', url: `/para/${encodeURIComponent(name)}` },
+    twitter: { card: 'summary_large_image', title, description },
+  }
 }
 
 export default async function Page({ params, searchParams }: Props) {

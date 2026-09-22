@@ -3,9 +3,10 @@ import { script, serif, sans } from './fonts'
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  // Las imágenes de vista previa (WhatsApp) necesitan URLs absolutas del dominio público.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://amarillo.xavieraguas.com'),
   title: 'Flores amarillas · 21 de septiembre',
-  description: 'Un ramo de flores amarillas, único para cada nombre, que se abre al tocarlo.',
+  description: 'Un ramo de girasoles hecho de luz, solo para alguien especial.',
 }
 
 export const viewport: Viewport = {
