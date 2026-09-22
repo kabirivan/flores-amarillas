@@ -102,7 +102,6 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
   const onProgress = useCallback(
     (p: number) => {
       engineRef.current?.setProgress(p)
-      if (p > 0.012) setScrolled(true)
       const { chapter } = sceneAt(p)
       if (chapter !== lastChapter.current) {
         if (chapter > lastChapter.current) cue(chapterCue(bouquet.seed, CHAPTERS[chapter]?.id ?? 'final'))
@@ -113,6 +112,17 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
     [cue, setRain, bouquet.seed],
   )
   useScrollProgress(storyRef, started && seek === null && !reduced, onProgress)
+
+  // La invitación a avanzar se va con el primer scroll de verdad (el progreso de la
+  // historia ya marca algo al cargar, así que no sirve para saberlo).
+  useEffect(() => {
+    if (!started || scrolled || seek !== null) return
+    const onScroll = () => {
+      if (window.scrollY > 40) setScrolled(true)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [started, scrolled, seek])
 
   // Paralaje de cámara con el cursor.
   useEffect(() => {
@@ -186,12 +196,20 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
   )
 }
 
-/** En móvil: una flecha que rebota abajo e invita a deslizar (se va al empezar el scroll). */
+/**
+ * Invitación a avanzar: una rueda de ratón con su punto bajando (o un dedo deslizando, en
+ * pantallas táctiles) y el texto. Se va en cuanto la persona hace scroll.
+ */
 function ScrollHint() {
   return (
     <div className={styles.scrollHint} aria-hidden="true">
-      <span>desliza</span>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg className={styles.hintMouse} width="26" height="40" viewBox="0 0 26 40" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <rect x="1" y="1" width="24" height="38" rx="12" />
+        <circle className={styles.hintDot} cx="13" cy="11" r="2.4" fill="currentColor" stroke="none" />
+      </svg>
+      <span className={styles.hintDesk}>Desplázate para ver la historia</span>
+      <span className={styles.hintTouch}>Desliza para ver la historia</span>
+      <svg className={styles.hintArrow} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M6 9l6 6 6-6" />
       </svg>
     </div>
