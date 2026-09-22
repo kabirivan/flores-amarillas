@@ -24,10 +24,10 @@ export function Portada({ name, from, leaving, animate, onStart }: Props) {
       <div className={styles.portadaCard}>
         <h1 className={styles.portadaTitle}>
           <span className="visually-hidden">Para {name}</span>
-          <HandwrittenName name={name} delay={0.35} write={animate} className={styles.portadaName} />
+          <HandwrittenName name={`Para ${name}`} delay={0.35} write={animate} className={styles.portadaName} />
         </h1>
         <p className={styles.lede}>{from ? `${from} te dejó unas flores` : 'Alguien te dejó unas flores'}</p>
-        <Button onClick={onStart} aria-label={`Abrir las flores de ${name}`}>
+        <Button onClick={onStart} aria-label="Abrir las flores">
           Ábrelas <span aria-hidden="true">✧</span>
         </Button>
         <p className={styles.hint}>Mejor con sonido</p>

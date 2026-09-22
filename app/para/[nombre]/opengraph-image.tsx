@@ -1,5 +1,4 @@
 import { ImageResponse } from 'next/og'
-import { cleanName, safeDecode } from '@/lib/link/sanitize'
 
 export const alt = 'Un ramo de girasoles hecho solo para ti'
 export const size = { width: 1200, height: 630 }
@@ -45,8 +44,9 @@ function Sunflower() {
   )
 }
 
-export default async function Image({ params }: { params: Promise<{ nombre: string }> }) {
-  const name = cleanName(safeDecode((await params).nombre)) || 'ti'
+/** Genérica: el nombre de la URL no aparece (ver page.tsx). */
+export default async function Image() {
+  const name = 'ti'
   // Dos fuentes con nombre propio: si solo se carga la manuscrita, se cuela en el resto del texto.
   const [font, sans] = await Promise.all([googleFont('Ephesis', `Para ${name}`), googleFont('Inter', KICKER.toUpperCase() + LINE)])
   return new ImageResponse(
