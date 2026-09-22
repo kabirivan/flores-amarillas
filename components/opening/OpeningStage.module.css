@@ -1,0 +1,184 @@
+.main {
+  height: 100dvh;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: 12px 24px;
+  padding-inline: 16px;
+  overflow: hidden;
+}
+
+/* El ramo ocupa lo que deje libre la tarjeta (flex-basis 0 = altura definida). */
+.stage {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  outline: none;
+}
+
+/*
+ * Profundidad: el escenario (ramo + partículas) se desplaza con el cursor más que el cielo
+ * y menos que el bokeh de las partículas cercanas. Solo transform: compositor.
+ */
+.depth {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(calc(var(--px, 0) * -14px), calc(var(--py, 0) * -9px), 0);
+}
+
+/* Capas del escenario: el ramo vectorial y, encima, el lienzo de la galaxia. */
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bouquet {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/*
+ * Pantallas horizontales anchas: el ramo ocupa toda la altura a la izquierda y el texto
+ * queda a la derecha, centrado en vertical.
+ */
+@media (min-width: 900px) and (min-aspect-ratio: 5 / 4) {
+  .main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    column-gap: clamp(16px, 4vw, 64px);
+    padding-block: 24px;
+    padding-inline: clamp(16px, 5vw, 80px);
+  }
+
+  .stage {
+    height: 100%;
+  }
+
+  /* El texto vive en el suelo oscuro, bajo la línea del horizonte: contraste AA holgado. */
+  .card {
+    align-self: end;
+    padding-bottom: 4dvh;
+  }
+
+  .panel {
+    align-content: end;
+  }
+}
+
+/* Las dos tarjetas comparten celda: la altura es la de la mayor y el ramo no salta. */
+.card {
+  position: relative;
+  display: grid;
+  width: min(100%, 36rem);
+  text-align: center;
+  isolation: isolate;
+}
+
+/* Viñeta suave detrás del texto: garantiza el contraste aunque un mensaje largo suba. */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: -12% -18%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(20 14 28 / 0.7), rgb(20 14 28 / 0.35) 60%, transparent);
+  pointer-events: none;
+}
+
+.panel {
+  grid-area: 1 / 1;
+  display: grid;
+  align-content: end;
+  justify-items: center;
+  gap: 10px;
+  transition:
+    opacity 0.35s var(--ease-out),
+    visibility 0s linear 0s;
+}
+
+.panel[data-visible='false'] {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease-in,
+    visibility 0s linear 0.25s;
+}
+
+.heading {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  font-weight: 400;
+  line-height: 1;
+  outline: none;
+  width: 100%;
+}
+
+.forWord {
+  font-family: var(--font-serif), Georgia, serif;
+  font-variation-settings: 'SOFT' 100, 'WONK' 1, 'opsz' 48;
+  font-style: italic;
+  font-size: clamp(1.1rem, 4vw, 1.45rem);
+  color: var(--ink-soft);
+}
+
+.name {
+  font-size: clamp(3.5rem, 15vw, 5.75rem);
+}
+
+.name[data-length='mid'] {
+  font-size: clamp(3rem, 12vw, 4.75rem);
+}
+
+.name[data-length='long'] {
+  font-size: clamp(2.5rem, 10vw, 3.75rem);
+}
+
+.lede {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-variation-settings: 'SOFT' 50, 'opsz' 24;
+  font-size: clamp(1.05rem, 3.8vw, 1.25rem);
+  color: var(--ink);
+}
+
+.message {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-variation-settings: 'SOFT' 50, 'opsz' 24;
+  font-size: clamp(1.05rem, 3.6vw, 1.25rem);
+  line-height: 1.45;
+  white-space: pre-line;
+  text-wrap: balance;
+}
+
+.word {
+  display: inline-block;
+}
+
+.from {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+  min-height: 48px;
+}
+
+.openButton {
+  margin-top: 10px;
+}

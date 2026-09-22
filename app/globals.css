@@ -1,0 +1,69 @@
+:root {
+  --sky-0: #1a1035;
+  --sky-1: #4a1f4e;
+  --sky-2: #b4456a;
+  --sky-3: #f2a25c;
+  --glow: #ffc46b;
+
+  --ink: #fdf6ec;
+  --ink-soft: #bfb0ce;
+  --sun: #ffd23f;
+  --lemon: #ffe45e;
+  --amber: #ffb627;
+
+  --focus: #ffe45e;
+  --radius: 999px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  color: var(--ink);
+  background: var(--sky-0);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* El atributo hidden gana siempre, aunque una clase declare display. */
+[hidden] {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

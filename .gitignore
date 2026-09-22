@@ -141,3 +141,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Modelos originales sin optimizar (pesados); los optimizados van en public/models
+/assets-src

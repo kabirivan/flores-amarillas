@@ -1,0 +1,223 @@
+.root {
+  position: relative;
+}
+
+/* El lienzo 3D, fijo detrás de todo. Aparece al empezar la historia. */
+.canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-out);
+}
+
+.canvas[data-ready='true'] {
+  opacity: 1;
+}
+
+.story {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hasta pulsar «Comenzar» la historia no se ve (sigue en el DOM para quien la lea). */
+.story[data-started='false'] {
+  visibility: hidden;
+}
+
+/* ---- Portada ------------------------------------------------------------ */
+
+.portada {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  justify-items: center;
+  padding-block: 12px 32px;
+  padding-inline: 16px;
+}
+
+.portada[inert] {
+  pointer-events: none;
+}
+
+.portadaStage {
+  position: relative;
+  width: min(100%, 560px);
+}
+
+.portadaCard {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.portadaTitle {
+  margin: 0;
+  font-weight: 400;
+}
+
+.portadaName {
+  font-size: clamp(3.5rem, 14vw, 5.5rem);
+}
+
+.lede {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-variation-settings: 'SOFT' 50, 'opsz' 24;
+  font-size: clamp(1.1rem, 4vw, 1.3rem);
+}
+
+.hint {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+}
+
+/* ---- Capítulos ------------------------------------------------------------ */
+
+.chapter {
+  position: relative;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding-block: 0 14svh;
+  padding-inline: 20px;
+  pointer-events: none;
+}
+
+.line {
+  margin: 0;
+  max-width: 22ch;
+  text-align: center;
+  font-family: var(--font-serif), Georgia, serif;
+  font-variation-settings: 'SOFT' 100, 'WONK' 1, 'opsz' 72;
+  font-weight: 350;
+  font-size: clamp(1.9rem, 6.2vw, 3.6rem);
+  line-height: 1.15;
+  text-wrap: balance;
+  color: var(--ink);
+  text-shadow: 0 2px 30px rgb(10 6 20 / 0.6);
+}
+
+.name {
+  font-family: var(--font-script), cursive;
+  font-size: 1.35em;
+  line-height: 0.9;
+  color: var(--lemon);
+  text-shadow: 0 0 24px rgb(255 196 107 / 0.5);
+}
+
+/* ---- Final ---------------------------------------------------------------- */
+
+.finale {
+  position: relative;
+  touch-action: pan-y;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding-block: 0 8svh;
+  padding-inline: 20px;
+}
+
+.finaleCard {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 36rem;
+  text-align: center;
+  isolation: isolate;
+}
+
+.finaleCard::before {
+  content: '';
+  position: absolute;
+  inset: -14% -20%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(20 14 28 / 0.75), rgb(20 14 28 / 0.35) 60%, transparent);
+}
+
+.finaleTitle {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  font-weight: 400;
+}
+
+.forWord {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  font-size: 1.3rem;
+  color: var(--ink-soft);
+}
+
+.finaleName {
+  font-size: clamp(3rem, 12vw, 5rem);
+}
+
+.message {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.05rem, 3.6vw, 1.25rem);
+  line-height: 1.45;
+  white-space: pre-line;
+  text-wrap: balance;
+}
+
+.from {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.closing {
+  margin: 12px 0 0;
+  max-width: 30ch;
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* Arnés ?p=N: la frase fija abajo, como en el scroll real. */
+.harness {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding-block: 0 14svh;
+  padding-inline: 20px;
+  pointer-events: none;
+}
+
+/* Créditos de los modelos 3D (CC BY): discretos, al pie del final. */
+.credits {
+  margin-top: 1.5rem;
+  font-size: 0.7rem;
+  opacity: 0.55;
+  letter-spacing: 0.01em;
+}
+.credits a {
+  color: inherit;
+  text-underline-offset: 2px;
+}

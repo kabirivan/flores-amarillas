@@ -1,0 +1,28 @@
+/*
+ * Viento: cada flor gira unos grados alrededor del punto de atado. El tallo, sus hojas y
+ * su cabeza llevan la misma animación, así se mueven como una sola pieza aunque se pinten
+ * en capas distintas. El origen se expresa en unidades del viewBox (transform-box: view-box).
+ */
+.sway {
+  transform-box: view-box;
+  transform-origin: var(--ox) var(--oy);
+  animation: sway var(--dur) var(--delay) infinite both;
+}
+
+@keyframes sway {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: cubic-bezier(0.3, 0.6, 0.5, 1);
+  }
+  25% {
+    transform: rotate(var(--amp));
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  75% {
+    transform: rotate(calc(var(--amp) * -1));
+    animation-timing-function: cubic-bezier(0.5, 0, 0.7, 0.4);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}

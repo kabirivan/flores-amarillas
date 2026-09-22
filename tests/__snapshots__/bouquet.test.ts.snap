@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generateBouquet > fija el contrato: el ramo de María no cambia entre versiones 1`] = `
+{
+  "count": 15,
+  "paper": "crema",
+  "serial": 5399,
+  "species": [
+    "daisy",
+    "tulip",
+    "mimosa",
+    "freesia",
+    "daisy",
+    "daisy",
+    "sunflower",
+    "freesia",
+    "freesia",
+    "sunflower",
+    "tulip",
+    "mimosa",
+    "sunflower",
+    "freesia",
+    "sunflower",
+  ],
+}
+`;

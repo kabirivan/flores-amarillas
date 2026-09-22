@@ -1,0 +1,51 @@
+.toggle {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--ink);
+  background: rgb(20 14 28 / 0.45);
+  box-shadow: 0 0 0 1px rgb(253 246 236 / 0.2) inset;
+  backdrop-filter: blur(6px);
+  transition:
+    transform 0.2s var(--ease-out),
+    background-color 0.2s;
+}
+
+.toggle:hover {
+  background: rgb(20 14 28 / 0.65);
+}
+
+.toggle:active {
+  transform: scale(0.94);
+}
+
+.toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Las ondas "respiran" mientras suena: una pista discreta de que hay música. */
+.wave {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: breathe 2.4s ease-in-out infinite;
+}
+
+.wave:nth-of-type(2) {
+  animation-delay: 0.3s;
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+}

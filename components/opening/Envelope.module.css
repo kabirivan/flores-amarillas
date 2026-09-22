@@ -1,0 +1,43 @@
+.wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 22%;
+  width: min(62%, 260px);
+  aspect-ratio: 3 / 2;
+  /* Con posición medida (left/top) el sobre se centra en ese punto. */
+  translate: -50% 0;
+  perspective: 900px;
+  pointer-events: none;
+}
+
+.float {
+  position: absolute;
+  inset: 0;
+}
+
+.body,
+.flap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.flap {
+  transform-origin: 50% 0%;
+  backface-visibility: visible;
+  z-index: 2;
+}
+
+/* Halo cálido detrás: el sobre también es una fuente de luz. */
+.glow {
+  position: absolute;
+  inset: -40% -30%;
+  background: radial-gradient(closest-side, rgb(255 196 107 / 0.32), transparent);
+  z-index: -1;
+}
+
+.wrap[style] {
+  translate: -50% -50%;
+}

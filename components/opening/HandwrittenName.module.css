@@ -1,0 +1,56 @@
+.svg {
+  display: block;
+  height: 1.35em;
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+  overflow: visible;
+  color: var(--lemon);
+  filter: drop-shadow(0 0 14px rgb(255 196 107 / 0.45));
+  transition: opacity 0.2s;
+}
+
+.svg[data-ready='false'] {
+  opacity: 0;
+}
+
+.text {
+  font-family: var(--font-script), cursive;
+  font-size: 100px;
+  fill: currentColor;
+}
+
+/*
+ * Cada letra: primero se traza el contorno (como la punta de una pluma) y después
+ * entra la tinta. Los retrasos llegan por estilo en línea, letra a letra.
+ */
+.letter {
+  stroke: currentColor;
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  /* Invisible hasta que arranca su animación: el guion se repite en contornos largos. */
+  stroke-opacity: 0;
+  stroke-dasharray: 1600;
+  stroke-dashoffset: 1600;
+  fill-opacity: 0;
+  animation:
+    write var(--write, 0.8s) cubic-bezier(0.45, 0, 0.25, 1) forwards,
+    ink 0.45s ease-out forwards;
+}
+
+@keyframes write {
+  from {
+    stroke-opacity: 1;
+    stroke-dashoffset: 1600;
+  }
+  to {
+    stroke-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ink {
+  to {
+    fill-opacity: 1;
+  }
+}
