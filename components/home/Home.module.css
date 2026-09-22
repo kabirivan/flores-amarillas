@@ -214,3 +214,29 @@
     grid-template-columns: repeat(5, 1fr);
   }
 }
+
+/* La historia con scroll: un enlace discreto bajo los ramos. */
+.story {
+  justify-self: center;
+  padding: 12px 22px;
+  border: 1px dashed rgb(255 210 63 / 0.45);
+  border-radius: 999px;
+  font-family: var(--font-serif), serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: rgb(255 210 63 / 0.85);
+  text-decoration: none;
+  transition: background 0.35s var(--ease-out), color 0.35s var(--ease-out), border-color 0.35s var(--ease-out);
+}
+.story:hover,
+.story:focus-visible {
+  color: #1a1206;
+  background: var(--sun);
+  border-style: solid;
+  border-color: var(--sun);
+}
+.story:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+

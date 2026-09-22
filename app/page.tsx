@@ -38,6 +38,10 @@ export default function Home() {
           </ul>
         </section>
 
+        <Link className={styles.story} href="/historia">
+          ✧ Ver la historia completa
+        </Link>
+
         <a className={styles.signature} href="https://xavieraguas.com" target="_blank" rel="noopener">
           <span className={styles.by}>Creado por</span>
           <span className={styles.name}>Xavier Aguas</span>
