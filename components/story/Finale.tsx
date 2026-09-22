@@ -25,6 +25,9 @@ export function Finale({ name, from, message, height, onReplay }: Props) {
             Ver otra vez
           </Button>
         </div>
+        <a className={styles.site} href="https://xavieraguas.com" target="_blank" rel="noopener">
+          xavieraguas.com
+        </a>
       </div>
     </section>
   )

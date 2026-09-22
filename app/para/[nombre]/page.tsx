@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { cleanFrom, cleanMessage, cleanName, safeDecode } from '@/lib/link/sanitize'
+import { cleanMessage, cleanName, safeDecode } from '@/lib/link/sanitize'
 import { OpeningStage } from '@/components/opening/OpeningStage'
 import { StoryExperience } from '@/components/story/StoryExperience'
 
@@ -28,7 +28,8 @@ export default async function Page({ params, searchParams }: Props) {
   const name = cleanName(safeDecode(nombre))
   if (!name) notFound()
 
-  const from = cleanFrom(first(query.de))
+  // Los ramos siempre los regala Xavi (se ignora ?de=).
+  const from = 'Xavi'
   const message = cleanMessage(first(query.m))
   const apertura = first(query.apertura)
 
