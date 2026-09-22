@@ -16,8 +16,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = cleanName(safeDecode(nombre))
   if (!name) return { title: 'Flores amarillas' }
   // Lo que se ve al compartir el enlace (WhatsApp, iMessage…): íntimo, no técnico.
-  const title = `${name}, estas flores son solo para ti 🌻`
-  const description = `Un ramo de girasoles que crece flor a flor, pensado solo para ti, ${name}. Nadie más tiene uno igual. Ábrelo con calma 💛`
+  // /para/ti (el botón de la portada): sin nombre propio.
+  const generic = name.toLowerCase() === 'ti'
+  const title = generic ? 'Estas flores son solo para ti 🌻' : `${name}, estas flores son solo para ti 🌻`
+  const description = generic
+    ? 'Un ramo de girasoles que crece flor a flor, pensado solo para ti. Ábrelo con calma 💛'
+    : `Un ramo de girasoles que crece flor a flor, pensado solo para ti, ${name}. Nadie más tiene uno igual. Ábrelo con calma 💛`
   return {
     title,
     description,

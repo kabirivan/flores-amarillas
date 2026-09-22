@@ -86,9 +86,10 @@ void main() {
   float tw = 0.6 + 0.4 * sin(uTime * 2.0 + hash(cell + 3.1) * 40.0);
   col += vec3(1.0, 0.95, 0.85) * star * tw * night * 0.8;
 
-  // Grano de película: ruido por píxel que cambia cada fotograma. Quita el aspecto
-  // digital a los degradados (y evita las bandas) sin que se note como textura.
-  float grain = hash(gl_FragCoord.xy + fract(uTime * 7.13) * 419.0) - 0.5;
+  // Grano de película: ruido por píxel. Quita el aspecto digital a los degradados (y
+  // evita las bandas) sin que se note como textura.
+  // Fijo (no cambia cada fotograma): un grano animado se ve como parpadeo.
+  float grain = hash(gl_FragCoord.xy) - 0.5;
   col += grain * 0.03 * (0.6 + 0.4 * (1.0 - night));
 
   #ifdef FA_LINEAR

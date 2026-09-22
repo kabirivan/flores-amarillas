@@ -28,12 +28,13 @@ varying vec3 vColor;
 varying float vA;
 void main() {
   // Ondulación que viaja a lo largo del hilo (fluye de la base a la punta).
-  float wave = sin(aT * 7.0 - uTime * 1.6 + aSeed * 6.2832);
+  float wave = sin(aT * 5.0 - uTime * 1.1 + aSeed * 6.2832);
   vec3 p = position + aWob * wave;
   // Trazado: cada hilo se dibuja desde su origen; los hilos arrancan escalonados.
   float grow = smoothstep(0.0, 0.06, uReveal * 1.3 - aT - aSeed * 0.3);
   // Pulso de luz que recorre el hilo.
-  float pulse = 0.6 + 0.4 * sin(aT * 9.0 - uTime * 2.2 + aSeed * 12.0);
+  // Suave: un pulso fuerte y rápido, desfasado entre hilos vecinos, se ve como parpadeo.
+  float pulse = 0.85 + 0.15 * sin(aT * 4.0 - uTime * 1.2 + aSeed * 3.0);
   // El velo entre hilos (aFill = 1) es mucho más tenue que los hilos.
   vA = grow * uAlpha * mix(pulse, 0.16, aFill);
   vColor = color;
@@ -45,8 +46,9 @@ const FRAG = /* glsl */ `
 varying vec3 vColor;
 varying float vA;
 void main() {
-  if (vA <= 0.002) discard;
-  vec3 c = vColor;
+  // «!(vA > …)» también descarta NaN: con bloom, un solo NaN se emborrona en un bloque negro.
+  if (!(vA > 0.002)) discard;
+  vec3 c = clamp(vColor, 0.0, 4.0);
   #ifdef FA_LINEAR
   c = pow(c, vec3(2.2));
   #endif
@@ -82,9 +84,16 @@ export function createStrands(strands: Strand[], parent: THREE.Object3D, alpha: 
     const put = (i: number) => {
       const p = s.points[i]!
       const c = s.colors[Math.min(i, s.colors.length - 1)]!
-      pos.set([p.x, p.y, p.z], v * 3)
-      col.set([c.r, c.g, c.b], v * 3)
-      wob.set([s.wob.x, s.wob.y, s.wob.z], v * 3)
+      const o = v * 3
+      pos[o] = p.x
+      pos[o + 1] = p.y
+      pos[o + 2] = p.z
+      col[o] = c.r
+      col[o + 1] = c.g
+      col[o + 2] = c.b
+      wob[o] = s.wob.x
+      wob[o + 1] = s.wob.y
+      wob[o + 2] = s.wob.z
       t[v] = i / Math.max(1, n - 1)
       seed[v] = s.seed
       v++
@@ -119,37 +128,55 @@ export function createStrands(strands: Strand[], parent: THREE.Object3D, alpha: 
 
   // Velos: triángulos entre hilos vecinos de la misma cinta, con el mismo material (misma
   // ondulación, trazado y pulso); aFill = 1 los hace tenues.
-  const fp: number[] = []
-  const fc: number[] = []
-  const fw: number[] = []
-  const ft: number[] = []
-  const fs: number[] = []
-  const vert = (st: Strand, i: number) => {
-    const p = st.points[i]!
-    const c = st.colors[Math.min(i, st.colors.length - 1)]!
-    fp.push(p.x, p.y, p.z)
-    fc.push(c.r, c.g, c.b)
-    fw.push(st.wob.x, st.wob.y, st.wob.z)
-    ft.push(i / Math.max(1, st.points.length - 1))
-    fs.push(st.seed)
-  }
+  // Primero se cuentan los vértices (arrays tipados de una vez: empujar a listas de JS
+  // cientos de miles de valores era lo más lento de toda la escena).
+  let tris = 0
   for (let j = 0; j < strands.length - 1; j++) {
     const a = strands[j]!
     const b = strands[j + 1]!
-    if (a.sheet === undefined || a.sheet !== b.sheet || a.points.length !== b.points.length) continue
-    for (let i = 0; i < a.points.length - 1; i++) {
-      vert(a, i), vert(b, i), vert(a, i + 1)
-      vert(a, i + 1), vert(b, i), vert(b, i + 1)
-    }
+    if (a.sheet !== undefined && a.sheet === b.sheet && a.points.length === b.points.length) tris += (a.points.length - 1) * 2
   }
-  if (fp.length) {
+  if (tris > 0) {
+    const nv = tris * 3
+    const fp = new Float32Array(nv * 3)
+    const fc = new Float32Array(nv * 3)
+    const fw = new Float32Array(nv * 3)
+    const ft = new Float32Array(nv)
+    const fs = new Float32Array(nv)
+    let w = 0
+    const vert = (st: Strand, i: number) => {
+      const p = st.points[i]!
+      const c = st.colors[Math.min(i, st.colors.length - 1)]!
+      const o = w * 3
+      fp[o] = p.x
+      fp[o + 1] = p.y
+      fp[o + 2] = p.z
+      fc[o] = c.r
+      fc[o + 1] = c.g
+      fc[o + 2] = c.b
+      fw[o] = st.wob.x
+      fw[o + 1] = st.wob.y
+      fw[o + 2] = st.wob.z
+      ft[w] = i / Math.max(1, st.points.length - 1)
+      fs[w] = st.seed
+      w++
+    }
+    for (let j = 0; j < strands.length - 1; j++) {
+      const a = strands[j]!
+      const b = strands[j + 1]!
+      if (a.sheet === undefined || a.sheet !== b.sheet || a.points.length !== b.points.length) continue
+      for (let i = 0; i < a.points.length - 1; i++) {
+        vert(a, i), vert(b, i), vert(a, i + 1)
+        vert(a, i + 1), vert(b, i), vert(b, i + 1)
+      }
+    }
     const fg = new THREE.BufferGeometry()
-    fg.setAttribute('position', new THREE.Float32BufferAttribute(fp, 3))
-    fg.setAttribute('color', new THREE.Float32BufferAttribute(fc, 3))
-    fg.setAttribute('aWob', new THREE.Float32BufferAttribute(fw, 3))
-    fg.setAttribute('aT', new THREE.Float32BufferAttribute(ft, 1))
-    fg.setAttribute('aSeed', new THREE.Float32BufferAttribute(fs, 1))
-    fg.setAttribute('aFill', new THREE.Float32BufferAttribute(new Float32Array(ft.length).fill(1), 1))
+    fg.setAttribute('position', new THREE.BufferAttribute(fp, 3))
+    fg.setAttribute('color', new THREE.BufferAttribute(fc, 3))
+    fg.setAttribute('aWob', new THREE.BufferAttribute(fw, 3))
+    fg.setAttribute('aT', new THREE.BufferAttribute(ft, 1))
+    fg.setAttribute('aSeed', new THREE.BufferAttribute(fs, 1))
+    fg.setAttribute('aFill', new THREE.BufferAttribute(new Float32Array(nv).fill(1), 1))
     const veil = new THREE.Mesh(fg, material)
     veil.frustumCulled = false
     // Se libera con la geometría de las líneas.
@@ -160,7 +187,14 @@ export function createStrands(strands: Strand[], parent: THREE.Object3D, alpha: 
 }
 
 type Rand = () => number
-const lerpColor = (a: string, b: string, t: number) => new THREE.Color(a).lerp(new THREE.Color(b), t)
+/** Colores ya interpretados: convertir el hexadecimal en cada punto de cada hilo era lo más lento. */
+const parsed = new Map<string, THREE.Color>()
+const hex = (h: string) => {
+  let c = parsed.get(h)
+  if (!c) parsed.set(h, (c = new THREE.Color(h)))
+  return c
+}
+const lerpColor = (a: string, b: string, t: number) => hex(a).clone().lerp(hex(b), t)
 
 /**
  * Cinta de hilos a lo largo de una curva: los hilos se reparten en una elipse plana alrededor
@@ -233,7 +267,7 @@ export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 
         points.push(tx(new THREE.Vector3(ca * r - sa * lat, sa * r + ca * lat, z)))
         colors.push(lerpColor('#ff9f1a', '#ffe36e', t * 0.85 + Math.abs(u) * 0.25))
       }
-      out.push({ points, colors, wob: zAxis.clone().multiplyScalar(R * 0.035), seed: petalSeed + j * 0.004, sheet })
+      out.push({ points, colors, wob: zAxis.clone().multiplyScalar(R * 0.018), seed: petalSeed + j * 0.004, sheet })
     }
   }
   // Disco: dos familias de espirales (las semillas del girasol), de oscuro a cobre.

@@ -1,5 +1,5 @@
 /**
- * Jardín de fondo dibujado con hilos (el mismo estilo que el ramo): hierba, girasoles
+ * Jardín de fondo dibujado con hilos de neón (el mismo estilo que el ramo): hierba, girasoles
  * pequeños, espigas de lavanda y la silueta de unas colinas en el horizonte. Rodea el ramo
  * sin taparlo; lo lejano se apaga para dar profundidad.
  *
@@ -15,7 +15,12 @@ import { createStrands, sunflowerHead, type Strand, type Strands } from '../bouq
 export type GardenDensity = { grass: number; sunflowers: number; lavender: number }
 
 /** Atenúa un color con la distancia (lo lejano, más tenue: niebla nocturna). */
-const fade = (hex: string, d: number) => new THREE.Color(hex).multiplyScalar(1 / (1 + d * 0.035))
+const parsed = new Map<string, THREE.Color>()
+const fade = (hex: string, d: number) => {
+  let c = parsed.get(hex)
+  if (!c) parsed.set(hex, (c = new THREE.Color(hex)))
+  return c.clone().multiplyScalar(1 / (1 + d * 0.035))
+}
 
 export function createLineGarden(parent: THREE.Object3D, seed: string, density: GardenDensity): Strands {
   const rng = createRng(`jardin-hilos:${seed}`)
@@ -44,7 +49,7 @@ export function createLineGarden(parent: THREE.Object3D, seed: string, density: 
     for (let k = 0; k <= 5; k++) {
       const t = k / 5
       points.push(p.clone().add(new THREE.Vector3(lean.x * t * t, h * t, lean.z * t * t)))
-      colors.push(fade(t < 0.5 ? '#2a6e3c' : '#8fd06a', d))
+      colors.push(fade(t < 0.5 ? '#169a5a' : '#5dffb0', d))
     }
     out.push({ points, colors, wob: new THREE.Vector3(0.06 * h, 0, 0.03 * h), seed: r() })
   }
@@ -63,14 +68,18 @@ export function createLineGarden(parent: THREE.Object3D, seed: string, density: 
     }
     for (let j = 0; j < 3; j++) {
       const off = new THREE.Vector3((j - 1) * 0.02, 0, 0)
-      out.push({ points: stem.map((q) => q.clone().add(off)), colors: [fade('#5fae5a', d)], wob: new THREE.Vector3(0.05, 0, 0.02), seed: r() })
+      out.push({ points: stem.map((q) => q.clone().add(off)), colors: [fade('#3ddc84', d)], wob: new THREE.Vector3(0.05, 0, 0.02), seed: r() })
     }
     const facing = new THREE.Vector3((r() - 0.5) * 0.6, 0.25 + r() * 0.3, 1).normalize()
     const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), facing).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), r() * Math.PI))
     const m = new THREE.Matrix4().compose(top, q, new THREE.Vector3(1, 1, 1))
     const head = sunflowerHead(0.26 + r() * 0.2, m, r, 14, 5, 10)
     const dim = 1 / (1 + d * 0.035)
-    for (const s of head) s.colors = s.colors.map((c) => c.clone().multiplyScalar(dim))
+    // Sin velo (de lejos no se aprecia y multiplica los vértices): solo los hilos.
+    for (const s of head) {
+      s.colors = s.colors.map((c) => c.clone().multiplyScalar(dim))
+      delete s.sheet
+    }
     out.push(...head)
   }
 
@@ -86,7 +95,7 @@ export function createLineGarden(parent: THREE.Object3D, seed: string, density: 
     for (let k = 0; k <= 10; k++) {
       const t = k / 10
       points.push(p.clone().add(new THREE.Vector3(bend * t * t, h * t, 0)))
-      colors.push(fade(t < 0.55 ? '#3f8a4a' : '#c9b2ff', d))
+      colors.push(fade(t < 0.55 ? '#1fae6a' : '#d47bff', d))
     }
     out.push({ points, colors, wob: new THREE.Vector3(0.05, 0, 0.02), seed: r() })
     // Florecillas: pequeños trazos a los lados de la parte alta de la espiga.
@@ -96,7 +105,7 @@ export function createLineGarden(parent: THREE.Object3D, seed: string, density: 
       const side = k % 2 ? 1 : -1
       out.push({
         points: [base, base.clone().add(new THREE.Vector3(side * 0.05, 0.05, 0))],
-        colors: [fade('#d7c4ff', d)],
+        colors: [fade('#f0a8ff', d)],
         wob: new THREE.Vector3(0.05, 0, 0.02),
         seed: r(),
       })
@@ -114,7 +123,7 @@ export function createLineGarden(parent: THREE.Object3D, seed: string, density: 
       const y = GROUND + amp * (0.6 + 0.4 * Math.sin(x * 0.07 + ph) + 0.25 * Math.sin(x * 0.19 + ph * 2))
       points.push(new THREE.Vector3(x, y, z))
     }
-    out.push({ points, colors: [new THREE.Color('#8d7bd0').multiplyScalar(0.9 - ridge * 0.12)], wob: new THREE.Vector3(0, 0.02, 0), seed: r() })
+    out.push({ points, colors: [new THREE.Color(ridge % 2 ? '#ff4fd8' : '#7b6bff').multiplyScalar(1 - ridge * 0.13)], wob: new THREE.Vector3(0, 0.02, 0), seed: r() })
   }
 
   return createStrands(out, parent, 0.8)

@@ -304,6 +304,30 @@ export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}): Bo
     const u = l?.material.uniforms.uReveal
     if (u) u.value = v
   }
+  /** El ramo en hilos (strands.ts): cada flor, sus hilos; el papel, su tejido. */
+  const lightStrands = (seed: string) => {
+    const rand = createRng(`hilos:${seed}`)
+    const r = () => rand.next()
+    lightFlowers = flowerGroups.map((g, k) => {
+      const spec = strandSpecs[k]
+      if (!spec) return []
+      const q = new THREE.Quaternion().setFromUnitVectors(Z, spec.facing).multiply(new THREE.Quaternion().setFromAxisAngle(Z, THREE.MathUtils.degToRad(spec.spin)))
+      const m = new THREE.Matrix4().compose(spec.head, q, new THREE.Vector3(1, 1, 1))
+      const all: Strand[] = [
+        ...ribbon(spec.curve, { strands: 26, samples: 48, width: 0.34, twist: Math.PI * 3, from: '#1f5a2c', to: '#a6d95f', wob: 0.05, rand: r }),
+        ...spec.leaves.flatMap((l) => strandLeaf(l.at, l.dir, l.length, r)),
+        ...sunflowerHead(spec.R, m, r),
+      ]
+      return [createStrands(all, g, 0.5) as unknown as LightPoints]
+    })
+    lightWrap = createStrands(wrapCone(wrapShape.tip, wrapShape.height, wrapShape.R, r), root, 0.22) as unknown as LightPoints
+    root.traverse((o) => {
+      if (o instanceof THREE.Mesh) {
+        meshes.push(o)
+        o.visible = false
+      }
+    })
+  }
   return {
     root,
     count: bouquet.flowers.length,
@@ -335,6 +359,10 @@ export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}): Bo
       }
     },
     lightUp(total, seed) {
+      if (LINE_BOUQUET) {
+        lightStrands(seed)
+        return
+      }
       // Un solo muestreo de todo el ramo y cada punto a la pieza de la que sale.
       const ownerOf = new Map<THREE.Object3D, number>()
       flowerGroups.forEach((g, k) => g.traverse((o) => ownerOf.set(o, k)))
@@ -362,24 +390,7 @@ export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}): Bo
       // Más puntos, menos luz cada uno: la suma (aditiva) no se quema a blanco y el color de
       // los girasoles se lee.
       const dim = Math.min(1, 42000 / Math.max(1000, total))
-      // Ramo de girasoles en líneas que fluyen (con el escaneo cargado): cada flor, sus hilos.
-      if (LINE_BOUQUET) {
-        const rand = createRng(`hilos:${seed}`)
-        const r = () => rand.next()
-        lightFlowers = flowerGroups.map((g, k) => {
-          const spec = strandSpecs[k]
-          if (!spec) return []
-          const q = new THREE.Quaternion().setFromUnitVectors(Z, spec.facing).multiply(new THREE.Quaternion().setFromAxisAngle(Z, THREE.MathUtils.degToRad(spec.spin)))
-          const m = new THREE.Matrix4().compose(spec.head, q, new THREE.Vector3(1, 1, 1))
-          const all: Strand[] = [
-            ...ribbon(spec.curve, { strands: 26, samples: 48, width: 0.34, twist: Math.PI * 3, from: '#1f5a2c', to: '#a6d95f', wob: 0.05, rand: r }),
-            ...spec.leaves.flatMap((l) => strandLeaf(l.at, l.dir, l.length, r)),
-            ...sunflowerHead(spec.R, m, r),
-          ]
-          return [createStrands(all, g, 0.5) as unknown as LightPoints]
-        })
-        lightWrap = createStrands(wrapCone(wrapShape.tip, wrapShape.height, wrapShape.R, r), root, 0.22) as unknown as LightPoints
-      } else {
+      {
       lightFlowers = flowerGroups.map((g, k) => {
         const idx = byOwner.get(k) ?? []
         return idx.length ? [createLightPoints(pick(idx), idx.length, g, 0.95, size * 0.72, h + k, true)] : []

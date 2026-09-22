@@ -43,23 +43,30 @@ export function BouquetExperience({ name, from, message, seek = null }: Props) {
     void import('@/lib/three/engine').then(({ supportsWebGL2 }) => setWebgl(supportsWebGL2()))
   }, [])
 
+  // La escena se construye mientras se lee la portada (tarda: miles de hilos); así, al pulsar
+  // «Ábrelas», el ramo empieza a dibujarse al instante.
+  const startedRef = useRef(started)
   useEffect(() => {
-    if (!started || !webgl || !canvasRef.current) return
+    if (!webgl || !canvasRef.current) return
     let cancelled = false
     let scene: BouquetScene | null = null
-    void import('@/lib/three/bouquetScene').then(({ createBouquetScene }) => {
-      if (cancelled || !canvasRef.current) return
-      scene = createBouquetScene(canvasRef.current, bouquet, { harness: seek !== null, reduced })
-      sceneRef.current = scene
-      if (seek !== null) scene.freeze(seek)
-      else scene.start()
-    })
+    const build = () =>
+      void import('@/lib/three/bouquetScene').then(({ createBouquetScene }) => {
+        if (cancelled || !canvasRef.current) return
+        scene = createBouquetScene(canvasRef.current, bouquet, { harness: seek !== null, reduced })
+        sceneRef.current = scene
+        if (seek !== null) scene.freeze(seek)
+        else if (startedRef.current) scene.start()
+      })
+    // Tras la entrada de la portada, para no entorpecer su animación.
+    const timer = window.setTimeout(build, seek !== null ? 0 : 1400)
     return () => {
       cancelled = true
+      window.clearTimeout(timer)
       scene?.dispose()
       sceneRef.current = null
     }
-  }, [started, webgl, bouquet, seek, reduced])
+  }, [webgl, bouquet, seek, reduced])
 
   // Paralaje con el cursor.
   useEffect(() => {
@@ -74,6 +81,8 @@ export function BouquetExperience({ name, from, message, seek = null }: Props) {
     music.play([], bouquet.seed, 0)
     setLeaving(true)
     setStarted(true)
+    startedRef.current = true
+    sceneRef.current?.start()
   }
 
   if (webgl === false) return <OpeningStage name={name} from={from} message={message} />

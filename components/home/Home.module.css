@@ -54,3 +54,88 @@
   color: var(--lemon);
   border-color: var(--lemon);
 }
+
+.stack {
+  display: grid;
+  justify-items: center;
+  gap: 40px;
+}
+
+/* El botón: píldora dorada con halo que late, un brillo que la cruza y un girasol que gira. */
+.cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 34px;
+  border-radius: 999px;
+  overflow: hidden;
+  isolation: isolate;
+  text-decoration: none;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+  font-weight: 600;
+  color: #2a1204;
+  background: linear-gradient(135deg, #ffe36e 0%, #ffc12e 45%, #ff9f1a 100%);
+  box-shadow:
+    0 0 0 1px rgb(255 240 190 / 0.6) inset,
+    0 10px 30px rgb(255 159 26 / 0.35),
+    0 0 60px rgb(255 196 107 / 0.35);
+  animation: cta-beat 2.4s ease-in-out infinite;
+  transition: transform 0.35s var(--ease-out);
+}
+.cta::before {
+  /* Brillo que cruza la píldora. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.65) 48%, transparent 66%);
+  transform: translateX(-120%);
+  animation: cta-shine 3.2s ease-in-out 1s infinite;
+}
+.cta::after {
+  /* Halo que se expande y se apaga, como un latido. */
+  content: '';
+  position: absolute;
+  inset: -6px;
+  z-index: -2;
+  border-radius: inherit;
+  border: 2px solid rgb(255 210 63 / 0.7);
+  animation: cta-ring 2.4s ease-out infinite;
+}
+.cta:hover,
+.cta:focus-visible {
+  transform: scale(1.05);
+}
+.cta:active {
+  transform: scale(0.97);
+}
+.cta:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 6px;
+}
+.ctaFlower {
+  display: inline-block;
+  font-size: 1.4em;
+  animation: cta-spin 8s linear infinite;
+}
+
+@keyframes cta-beat {
+  0%, 100% { box-shadow: 0 0 0 1px rgb(255 240 190 / 0.6) inset, 0 10px 30px rgb(255 159 26 / 0.35), 0 0 40px rgb(255 196 107 / 0.3); }
+  50% { box-shadow: 0 0 0 1px rgb(255 240 190 / 0.8) inset, 0 12px 36px rgb(255 159 26 / 0.5), 0 0 90px rgb(255 196 107 / 0.55); }
+}
+@keyframes cta-shine {
+  0% { transform: translateX(-120%); }
+  45%, 100% { transform: translateX(120%); }
+}
+@keyframes cta-ring {
+  0% { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+@keyframes cta-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta, .cta::before, .cta::after, .ctaFlower { animation: none; }
+}

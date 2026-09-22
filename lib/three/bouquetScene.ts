@@ -64,7 +64,7 @@ export function createBouquetScene(canvas: HTMLCanvasElement, bouquet: Bouquet, 
   // Jardín de líneas alrededor.
   const gardenGroup = new THREE.Group()
   scene.add(gardenGroup)
-  const garden = createLineGarden(gardenGroup, bouquet.seed, coarse ? { grass: 900, sunflowers: 26, lavender: 40 } : { grass: 2200, sunflowers: 60, lavender: 90 })
+  const garden = createLineGarden(gardenGroup, bouquet.seed, coarse ? { grass: 900, sunflowers: 70, lavender: 40 } : { grass: 2200, sunflowers: 150, lavender: 90 })
   garden.material.uniforms.uReveal!.value = 1
 
   // Luz para las mariposas (lo demás son hilos que emiten su propio color).
@@ -82,7 +82,8 @@ export function createBouquetScene(canvas: HTMLCanvasElement, bouquet: Bouquet, 
   let composer: EffectComposer | null = null
   let bloom: UnrealBloomPass | null = null
   if (!coarse) {
-    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }))
+    // Con antialias (MSAA): sin él, los hilos de 1 px parpadean al moverse.
+    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }))
     composer.addPass(new RenderPass(scene, camera))
     bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.35, 0.7, 0.82)
     composer.addPass(bloom)
