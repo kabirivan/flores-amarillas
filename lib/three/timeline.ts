@@ -23,8 +23,9 @@ export const CHAPTERS = [
   { id: 'florecer', shape: 'bloom', sky: 3, height: 1.6, morph: 0.6, wind: 0.35 },
   { id: 'ramo', shape: 'gather', sky: 3, height: 2.4, morph: 0.2, wind: 0.3 },
   // Recorrido de cámara: acercarse a olerlo, verlo en 360° y alejarse al ramo entero.
-  { id: 'contemplar', shape: 'gather', sky: 3, height: 3.4, morph: 0, wind: 0.25 },
-  { id: 'final', shape: 'gather', sky: 3, height: 1.4, morph: 0, wind: 0.25 },
+  // Cielo 4 = noche final: el naranja se apaga durante el recorrido y el ramo queda solo.
+  { id: 'contemplar', shape: 'gather', sky: 4, height: 3.4, morph: 0, wind: 0.25 },
+  { id: 'final', shape: 'gather', sky: 4, height: 1.4, morph: 0, wind: 0.25 },
 ] as const satisfies readonly { id: string; shape: GardenState; sky: number; height: number; morph: number; wind: number }[]
 
 export type CameraKey = { x: number; y: number; z: number; tx: number; ty: number; tz: number }

@@ -144,3 +144,4 @@ vite.config.ts.timestamp-*
 
 # Modelos originales sin optimizar (pesados); los optimizados van en public/models
 /assets-src
+.vercel

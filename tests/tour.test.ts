@@ -15,8 +15,16 @@ describe('recorrido de cámara', () => {
     for (const k of Object.keys(to) as (keyof CameraKey)[]) expect(end[k]).toBeCloseTo(to[k], 6)
   })
 
-  it('se acerca a la flor como para olerla', () => {
-    const c = at(0.26)
+  it('mira el ramo desde lo alto', () => {
+    const c = at(0.22)
+    // Muy por encima del centro, mirando hacia abajo.
+    expect(c.y - center.y).toBeGreaterThan(5)
+    expect(c.ty).toBeLessThan(c.y - 5)
+  })
+
+  it('baja desde arriba hasta la flor', () => {
+    const c = at(0.36)
+    expect(c.y).toBeGreaterThan(focus.y + 2)
     const d = Math.hypot(c.x - focus.x, c.y - focus.y, c.z - focus.z)
     expect(d).toBeLessThan(ORBIT.radius * 0.8) // más cerca que la vuelta alrededor
     expect(c.tx).toBeCloseTo(focus.x)
@@ -24,8 +32,8 @@ describe('recorrido de cámara', () => {
 
   it('da una vuelta completa alrededor del centro', () => {
     let angle = 0
-    let prev = Math.atan2(at(0.42).x - center.x, at(0.42).z - center.z)
-    for (let t = 0.43; t <= 0.82; t += 0.01) {
+    let prev = Math.atan2(at(0.46).x - center.x, at(0.46).z - center.z)
+    for (let t = 0.47; t <= 0.86; t += 0.01) {
       const c = at(t)
       expect(Math.hypot(c.x - center.x, c.z - center.z)).toBeCloseTo(ORBIT.radius, 3)
       const a = Math.atan2(c.x - center.x, c.z - center.z)

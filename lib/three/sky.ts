@@ -1,6 +1,6 @@
 /**
  * Cielo de la historia: un triángulo a pantalla completa en el plano lejano con un shader
- * que funde cuatro paletas (noche · lluvia · amanecer · hora dorada), con el horizonte
+ * que funde cinco paletas (noche · lluvia · amanecer · hora dorada · noche final), con el horizonte
  * luminoso de la identidad, estrellas que se apagan al amanecer y un grano de película sutil.
  */
 
@@ -12,6 +12,8 @@ const PALETTES: readonly (readonly string[])[] = [
   ['#141b2c', '#2a3850', '#56688a', '#10141e', '#8a9ab8'], // lluvia
   ['#2b1b3d', '#7a4a5c', '#e8a87c', '#1f1628', '#f7c59f'], // amanecer
   ['#1a1035', '#4a1f4e', '#f2a25c', '#1f1628', '#ffc46b'], // hora dorada
+  // Noche final: casi negra, sin resplandor naranja; el ramo de hilos es lo único que brilla.
+  ['#020308', '#05071a', '#0c0f2a', '#020206', '#241f45'],
 ]
 
 const toVec = (hex: string) => {
@@ -28,29 +30,29 @@ void main() {
 `
 
 const FRAG = /* glsl */ `
-uniform vec3 uTop[4];
-uniform vec3 uMid[4];
-uniform vec3 uHorizon[4];
-uniform vec3 uGround[4];
-uniform vec3 uGlow[4];
+uniform vec3 uTop[5];
+uniform vec3 uMid[5];
+uniform vec3 uHorizon[5];
+uniform vec3 uGround[5];
+uniform vec3 uGlow[5];
 uniform float uSky;
 uniform float uTime;
 uniform float uHorizonY;
 uniform vec2 uAspect;
 varying vec2 vUv;
 
-vec3 pick(vec3 arr[4], float s) {
+vec3 pick(vec3 arr[5], float s) {
   // Paleta i y la siguiente, fundidas por la parte fraccionaria.
   int i = int(floor(s));
-  vec3 a = i <= 0 ? arr[0] : i == 1 ? arr[1] : i == 2 ? arr[2] : arr[3];
-  vec3 b = i <= 0 ? arr[1] : i == 1 ? arr[2] : arr[3];
+  vec3 a = i <= 0 ? arr[0] : i == 1 ? arr[1] : i == 2 ? arr[2] : i == 3 ? arr[3] : arr[4];
+  vec3 b = i <= 0 ? arr[1] : i == 1 ? arr[2] : i == 2 ? arr[3] : arr[4];
   return mix(a, b, smoothstep(0.0, 1.0, fract(s)));
 }
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 
 void main() {
-  float s = clamp(uSky, 0.0, 3.0);
+  float s = clamp(uSky, 0.0, 4.0);
   vec3 top = pick(uTop, s);
   vec3 mid = pick(uMid, s);
   vec3 hor = pick(uHorizon, s);
@@ -73,7 +75,8 @@ void main() {
   col += glow * 0.35 * exp(-dot(p * vec2(0.9, 4.0), p * vec2(0.9, 4.0)) * 2.2);
 
   // Estrellas: solo de noche y con lluvia tenue, arriba.
-  float night = 1.0 - smoothstep(1.2, 2.4, s);
+  // Estrellas de noche (al principio) y en la noche final.
+  float night = max(1.0 - smoothstep(1.2, 2.4, s), smoothstep(3.2, 4.0, s));
   // Estrellas redondas: un punto con posición aleatoria dentro de cada celda.
   vec2 g = vUv * uAspect * 90.0;
   vec2 cell = floor(g);
@@ -95,7 +98,10 @@ void main() {
 }
 `
 
-export type Sky = { mesh: THREE.Mesh; update: (sky: number, time: number, aspect: number) => void; dispose: () => void }
+export type Sky = { mesh: THREE.Mesh; update: (sky: number, time: number, aspect: number, pitch?: number, fov?: number) => void; dispose: () => void }
+
+/** Inclinación (radianes) de las cámaras de los capítulos: con ella el horizonte va en 0,38. */
+const REF_PITCH = THREE.MathUtils.degToRad(-10)
 
 export function createSky(): Sky {
   const geometry = new THREE.BufferGeometry()
@@ -123,8 +129,14 @@ export function createSky(): Sky {
   mesh.renderOrder = -1
   return {
     mesh,
-    update(sky, time, aspect) {
+    update(sky, time, aspect, pitch = REF_PITCH, fov = 42) {
       const u = material.uniforms
+      // El horizonte está en el tercio inferior con la cámara de siempre (algo inclinada hacia
+      // abajo). Si se inclina más (el recorrido mira el ramo desde arriba), el horizonte sube
+      // en pantalla hasta salir por arriba: solo se ve el suelo oscuro.
+      const t = Math.tan(THREE.MathUtils.degToRad(fov / 2))
+      const screenY = (p: number) => 0.5 - Math.tan(p) / (2 * t)
+      if (u.uHorizonY) u.uHorizonY.value = 0.38 + Math.max(0, screenY(pitch) - screenY(REF_PITCH))
       if (u.uSky) u.uSky.value = sky
       if (u.uTime) u.uTime.value = time
       if (u.uAspect) (u.uAspect.value as THREE.Vector2).set(Math.max(1, aspect), Math.max(1, 1 / aspect))

@@ -28,6 +28,7 @@ uniform float uPixelRatio;
 uniform float uFocus;
 uniform float uCrisp;
 uniform float uFade;
+uniform float uHide;
 uniform float uVelocity;
 
 attribute vec2 aRef;
@@ -134,6 +135,8 @@ void main() {
   // Cuando el ramo se hace real, las partículas de los cometas desaparecen del todo (si no,
   // al rodear el ramo pasarían junto a la cámara como discos enormes).
   if (aFlower > -0.5) vAlpha *= 1.0 - uFade;
+  // En el final se apaga todo el jardín de partículas: solo quedan el ramo y las mariposas.
+  vAlpha *= 1.0 - uHide;
   // Al hacer scroll rápido el jardín "respira": un pulso de brillo que se apaga al parar.
   vAlpha *= 1.0 + uVelocity * 0.35;
 }
@@ -241,6 +244,7 @@ export function createMorphParticles(count: number, shapeCount: number, seed: nu
       uFocus: { value: 12 },
       uCrisp: { value: 0 },
       uFade: { value: 0 },
+      uHide: { value: 0 },
     },
   })
 

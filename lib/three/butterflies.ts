@@ -1,7 +1,8 @@
 /**
- * Mariposas para el final: unas pocas vuelan alrededor del ramo y una se posa en la flor
- * principal. Las alas se pintan por código en un lienzo (degradado, nervaduras, borde
- * oscuro y manchas), sin imágenes. No son emisivas: no compiten con las flores.
+ * Mariposas para el final: unas vuelan alrededor del ramo (una se posa en la flor principal)
+ * y otra bandada vuela a lo lejos, detrás del ramo, a distintas profundidades. Las alas se
+ * pintan por código en un lienzo (degradado, nervaduras, borde oscuro y manchas), sin
+ * imágenes, y brillan un poco por sí mismas: en la noche final tienen que verse.
  */
 
 import * as THREE from 'three'
@@ -99,6 +100,8 @@ type Butterfly = {
   radius: number
   height: number
   resting: boolean
+  /** A lo lejos: vuela por el fondo en vez de rodear el ramo. */
+  far: boolean
 }
 
 export type Butterflies = {
@@ -111,20 +114,22 @@ export type Butterflies = {
   dispose: () => void
 }
 
-export function createButterflies(count: number, seed: string): Butterflies {
+export function createButterflies(count: number, seed: string, farCount = 0): Butterflies {
   const rng = createRng(`mariposas:${seed}`)
   const group = new THREE.Group()
   group.name = 'mariposas'
   const textures = PALETTES.map(wingTexture)
   const materials = textures.map(
-    (map) => new THREE.MeshStandardMaterial({ map, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.65 }),
+    (map) =>
+      new THREE.MeshStandardMaterial({ map, emissiveMap: map, emissive: new THREE.Color('#ffffff'), emissiveIntensity: 0.45, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.65 }),
   )
   const bodyMat = new THREE.MeshStandardMaterial({ color: '#1f1a1a', roughness: 0.8 })
   const wingGeo = new THREE.PlaneGeometry(1, 1).translate(0.5, 0, 0)
   const bodyGeo = new THREE.CapsuleGeometry(0.035, 0.34, 4, 8)
 
   const flock: Butterfly[] = []
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count + farCount; i++) {
+    const far = i >= count
     const root = new THREE.Group()
     const material = materials[i % materials.length]!
     const right = new THREE.Mesh(wingGeo, material)
@@ -138,14 +143,25 @@ export function createButterflies(count: number, seed: string): Butterflies {
     wings.rotation.x = Math.PI / 2
     wings.add(right, left)
     root.add(wings, body)
-    root.scale.setScalar(rng.range(0.22, 0.3))
+    // Cerca, bien visibles; a lo lejos, más grandes para que la distancia no las borre.
+    root.scale.setScalar(far ? rng.range(0.7, 1.05) : rng.range(0.34, 0.44))
     group.add(root)
-    flock.push({ root, left, right, speed: rng.range(0.28, 0.45) * (rng.chance(0.5) ? 1 : -1), phase: rng.next() * Math.PI * 2, flap: rng.range(7, 10), radius: rng.range(0.78, 1.05), height: rng.range(-0.05, 0.5), resting: i === 0 })
+    flock.push({ root, left, right, speed: rng.range(0.28, 0.45) * (rng.chance(0.5) ? 1 : -1), phase: rng.next() * Math.PI * 2, flap: rng.range(7, 10), radius: far ? rng.range(0, 1) : rng.range(0.78, 1.05), height: far ? rng.range(0, 1) : rng.range(-0.05, 0.5), resting: i === 0, far })
   }
 
   const pos = new THREE.Vector3()
   const ahead = new THREE.Vector3()
   const path = (b: Butterfly, t: number, center: THREE.Vector3, radius: number, out: THREE.Vector3, far: number) => {
+    if (b.far) {
+      // Por el fondo: cruzan de lado a lado (y vuelven), ondulando, a 8–20 unidades detrás.
+      const s = t * Math.abs(b.speed) * 0.35 + b.phase
+      const depth = 8 + b.radius * 12
+      return out.set(
+        center.x + Math.sin(s) * (10 + depth * 0.6),
+        center.y + 0.5 + b.height * 4 + Math.sin(s * 2.3 + b.phase) * 0.8,
+        center.z - depth + Math.cos(s * 1.7) * 2,
+      )
+    }
     const a = t * b.speed + b.phase
     const r = radius * b.radius * (1 + 0.18 * Math.sin(t * 0.7 + b.phase)) * far
     out.set(center.x + Math.sin(a) * r, center.y + radius * (b.height + 0.25 * Math.sin(t * 0.9 + b.phase * 2)), center.z + Math.cos(a) * r)

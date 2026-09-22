@@ -210,14 +210,3 @@
   pointer-events: none;
 }
 
-/* Créditos de los modelos 3D (CC BY): discretos, al pie del final. */
-.credits {
-  margin-top: 1.5rem;
-  font-size: 0.7rem;
-  opacity: 0.55;
-  letter-spacing: 0.01em;
-}
-.credits a {
-  color: inherit;
-  text-underline-offset: 2px;
-}

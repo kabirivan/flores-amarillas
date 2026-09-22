@@ -30,6 +30,12 @@ const HEIGHT = 7
 /** Escala del ramo dentro del jardín: apoyado en el suelo, a la altura de las flores. */
 export const BOUQUET_SCALE = 0.52
 
+/**
+ * Ramo de girasoles en líneas que fluyen (strands.ts). Todo es procedural: las mallas 3D solo
+ * sirven para que las partículas de los cometas aterricen sobre su flor, y no se dibujan.
+ */
+const LINE_BOUQUET = true
+
 export type Bouquet3D = {
   root: THREE.Group
   /** Número de flores del ramo. */
@@ -108,12 +114,12 @@ export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}): Bo
   // papel, no en abanico. Espiral áurea (ninguna tapa a otra) con las más vistosas arriba.
   const mouth = toWorld(bind.x, bind.y - bouquet.wrap.shape.rise)
   /** Ramo con flores reales (modelos): cúpula compacta, cono fino, poco follaje. */
-  const real = !!(models.sunflower || models.gerbera)
+  const real = LINE_BOUQUET || !!(models.sunflower || models.gerbera)
   // El centro de la cúpula queda por debajo del borde del papel: las cabezas del borde
   // arrancan justo encima de él y no se ven tallos desnudos.
   // Con flores reales (cabezas más llenas) la cúpula es más compacta: se tocan entre sí.
   // Ramo de girasoles de luz: cada cabeza con su espacio, para que se lea su disco oscuro.
-  const domeR = models.sunflower ? 1.55 + n * 0.07 : real ? 1.12 + n * 0.048 : 1.8 + n * 0.075
+  const domeR = LINE_BOUQUET || models.sunflower ? 1.55 + n * 0.07 : real ? 1.12 + n * 0.048 : 1.8 + n * 0.075
   const domeC = new THREE.Vector3(0, mouth.y - domeR * (real ? 0.42 : 0.22), 0)
   const thetaMax = THREE.MathUtils.degToRad(70)
   const slots = new Map<number, THREE.Vector3>()
@@ -190,8 +196,8 @@ export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}): Bo
     headGroup.position.copy(h)
     // Cada flor mira hacia fuera de la cúpula (y un poco hacia arriba).
     // Los girasoles se giran hacia quien mira (se leen de frente); el resto, hacia fuera.
-    const facing = models.sunflower
-      ? head.clone().sub(domeC).normalize().multiplyScalar(0.45).add(new THREE.Vector3(0, 0.35, 1)).normalize()
+    const facing = LINE_BOUQUET || models.sunflower
+      ? head.clone().sub(domeC).normalize().multiplyScalar(0.45).add(new THREE.Vector3(0, 0.6, 1)).normalize()
       : head.clone().sub(domeC).add(new THREE.Vector3(0, 0.6, 0)).normalize()
     // En 3D las cabezas se ven de frente y algo en escorzo: un poco más grandes que en el dibujo.
     const scale = flower.scale * k * 1.2
@@ -263,7 +269,7 @@ export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}): Bo
 
   const wrapShape = buildWrap(root, bouquet, toWorld, k, mat, track, real ? 0.8 : 1)
   buildGreenery(root, bouquet, toWorld, k, mat, track, rng, real ? 0.8 : 1)
-  if (real && !models.sunflower) buildBed(root, domeC, domeR, thetaMax, n, k, models, wrapReveal, ao, extraMaterials, rng)
+  if (real && !LINE_BOUQUET && !models.sunflower) buildBed(root, domeC, domeR, thetaMax, n, k, models, wrapReveal, ao, extraMaterials, rng)
   buildFiller(root, bindW, domeC, domeR, n, k, mat, track, rng, real)
 
   // A escala del jardín: la punta del cono sigue apoyada en el suelo.
@@ -357,7 +363,7 @@ export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}): Bo
       // los girasoles se lee.
       const dim = Math.min(1, 42000 / Math.max(1000, total))
       // Ramo de girasoles en líneas que fluyen (con el escaneo cargado): cada flor, sus hilos.
-      if (models.sunflower) {
+      if (LINE_BOUQUET) {
         const rand = createRng(`hilos:${seed}`)
         const r = () => rand.next()
         lightFlowers = flowerGroups.map((g, k) => {

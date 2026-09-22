@@ -178,7 +178,8 @@ export function createStoryEngine(canvas: HTMLCanvasElement, bouquet: Bouquet, o
   }
 
   // Mariposas del final: vuelan alrededor del ramo; una se posa en la flor principal.
-  const butterflies = createButterflies(quality.bloom ? 5 : 4, seed)
+  // Cerca del ramo y, otra bandada, a lo lejos.
+  const butterflies = createButterflies(quality.bloom ? 6 : 5, seed, quality.bloom ? 10 : 6)
   scene.add(butterflies.group)
   // La flor principal en coordenadas del ramo: si se gira el ramo, la mariposa gira con él.
   const restLocal = flowers.root.worldToLocal(flowers.focus.clone().add(new THREE.Vector3(0, 0.12, 0.05)))
@@ -223,6 +224,7 @@ export function createStoryEngine(canvas: HTMLCanvasElement, bouquet: Bouquet, o
   let last = performance.now()
   let frozen = false
   const look = new THREE.Vector3()
+  const viewDir = new THREE.Vector3()
 
   const ramoIndex = CHAPTERS.findIndex((ch) => ch.id === 'ramo')
   /** Plano del ramo entero: a la distancia justa para que quepa, algo por encima del texto. */
@@ -292,6 +294,9 @@ export function createStoryEngine(canvas: HTMLCanvasElement, bouquet: Bouquet, o
     }
     // Las mariposas llegan con el final.
     const appear = s.chapter === finalIndex ? Math.min(1, s.local / 0.35) : 0
+    // Mientras llegan las mariposas, el jardín de partículas se apaga.
+    setU('uHide', appear * appear * (3 - 2 * appear))
+    particles.points.visible = appear < 0.999
     flowers.root.localToWorld(restWorld.copy(restLocal))
     butterflies.update(time, appear * appear * (3 - 2 * appear), flowers.center, flowers.radius, restWorld)
     flowers.update(time)
@@ -327,7 +332,8 @@ export function createStoryEngine(canvas: HTMLCanvasElement, bouquet: Bouquet, o
     }
     setU('uFocus', camera.position.distanceTo(look))
 
-    sky.update(s.sky, time, camera.aspect)
+    viewDir.subVectors(look, camera.position).normalize()
+    sky.update(s.sky, time, camera.aspect, Math.asin(Math.max(-1, Math.min(1, viewDir.y))), camera.fov)
     if (composer) composer.render(dt)
     else renderer.render(scene, camera)
   }

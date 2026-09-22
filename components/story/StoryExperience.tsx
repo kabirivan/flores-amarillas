@@ -53,7 +53,7 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
   useEffect(() => {
     if (!webgl) return
     const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1200))
-    idle(() => void import('@/lib/three/engine').then((m) => m.loadBouquetModels()))
+    idle(() => void import('@/lib/three/engine'))
   }, [webgl])
 
   // Mientras no empieza, la página no se desplaza: la portada es la puerta.
@@ -69,11 +69,10 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
     if (!started || !webgl || !canvasRef.current) return
     let cancelled = false
     let engine: StoryEngine | null = null
-    void import('@/lib/three/engine').then(async ({ createStoryEngine, loadBouquetModels }) => {
-      // Las flores reales (modelos 3D) se cargan antes de construir el ramo.
-      const models = await loadBouquetModels()
+    void import('@/lib/three/engine').then(({ createStoryEngine }) => {
       if (cancelled || !canvasRef.current) return
-      engine = createStoryEngine(canvasRef.current, bouquet, { harness: seek !== null, models })
+      // El ramo es de líneas procedurales: no carga modelos 3D (ver lib/three/bouquet3d/models.ts).
+      engine = createStoryEngine(canvasRef.current, bouquet, { harness: seek !== null })
       engineRef.current = engine
 
       // Arnés: sin scroll (las capturas de una capa fija tras un scroll programático
@@ -148,7 +147,7 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
           {seek !== null ? (
             sceneAt(seek).interactive ? (
               <div className={styles.harness}>
-                <Finale name={name} from={from} message={message} bouquet={bouquet} height={1} onReplay={replay} />
+                <Finale name={name} from={from} message={message} height={1} onReplay={replay} />
               </div>
             ) : (
               <HarnessLine chapters={chapters} p={seek} />
@@ -167,7 +166,7 @@ export function StoryExperience({ name, from, message, seek = null, rotation = 0
               if (line) return <Chapter key={ch.id} chapter={line} height={ch.height} reduced={reduced} />
               if (ch.id === 'final')
                 return (
-                  <Finale key={ch.id} name={name} from={from} message={message} bouquet={bouquet} height={ch.height} onReplay={replay} />
+                  <Finale key={ch.id} name={name} from={from} message={message} height={ch.height} onReplay={replay} />
                 )
               // Contemplación: sin frase; el scroll mueve la cámara alrededor del ramo.
               return <section key={ch.id} style={{ height: `${ch.height * 100}svh` }} aria-label="El ramo, de cerca y alrededor" />
