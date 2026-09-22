@@ -275,3 +275,28 @@
   }
 }
 
+
+/* Solo el ramo: la dedicatoria fija abajo; aparece cuando ya se han dibujado las flores. */
+.bouquetOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  animation: overlay-in 1.6s var(--ease-out) 4.8s forwards;
+}
+.bouquetOverlay[data-instant='true'] {
+  animation: none;
+  opacity: 1;
+}
+.bouquetOverlay .finale {
+  height: 100svh;
+}
+.bouquetOverlay .finaleCard {
+  pointer-events: auto;
+}
+@keyframes overlay-in {
+  to {
+    opacity: 1;
+  }
+}

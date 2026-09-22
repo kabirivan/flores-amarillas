@@ -200,7 +200,7 @@ export function ribbon(curve: THREE.Curve<THREE.Vector3>, opts: { strands: numbe
  * Cabeza de girasol en líneas, en el plano XY con la cara hacia +Z y radio `R`, llevada por
  * `m` a su sitio. Pétalos (haces que se abren y se cierran), disco (doble espiral) y anillo.
  */
-export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 22): Strand[] {
+export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 22, perPetal = 12, spirals = 26): Strand[] {
   const out: Strand[] = []
   const tx = (p: THREE.Vector3) => p.applyMatrix4(m)
   const zAxis = new THREE.Vector3(0, 0, 1).transformDirection(m)
@@ -211,7 +211,7 @@ export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 
     const r0 = R * 0.3
     const r1 = R * (ring ? 0.92 : 1) * (0.9 + rand() * 0.15)
     const w = R * (0.13 + rand() * 0.03)
-    const lines = 12
+    const lines = perPetal
     const ca = Math.cos(a)
     // Cada pétalo es una cinta que se retuerce (entra y sale del plano) a lo largo.
     const twist = (rand() - 0.5) * 0.8 + (ring ? 1.3 : -1.3)
@@ -237,7 +237,6 @@ export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 
     }
   }
   // Disco: dos familias de espirales (las semillas del girasol), de oscuro a cobre.
-  const spirals = 26
   for (const dir of [1, -1]) {
     for (let k = 0; k < spirals; k++) {
       const a0 = (k / spirals) * Math.PI * 2

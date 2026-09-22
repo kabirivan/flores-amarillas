@@ -8,7 +8,7 @@ import styles from './Story.module.css'
 
 type Props = { name: string; from: string; leaving: boolean; animate: boolean; onStart: () => void }
 
-/** La puerta de la historia: sobre, nombre escrito a mano y «Comenzar» (el gesto que desbloquea el audio). */
+/** La puerta del ramo: sobre, nombre escrito a mano y «Comenzar» (el gesto que desbloquea el audio). */
 export function Portada({ name, from, leaving, animate, onStart }: Props) {
   return (
     <m.div
@@ -26,11 +26,11 @@ export function Portada({ name, from, leaving, animate, onStart }: Props) {
           <span className="visually-hidden">Para {name}</span>
           <HandwrittenName name={name} delay={0.35} write={animate} className={styles.portadaName} />
         </h1>
-        <p className={styles.lede}>{from ? `${from} te dejó una historia` : 'Alguien te dejó una historia'}</p>
-        <Button onClick={onStart} aria-label={`Comenzar la historia para ${name}`}>
-          Comenzar <span aria-hidden="true">✧</span>
+        <p className={styles.lede}>{from ? `${from} te dejó unas flores` : 'Alguien te dejó unas flores'}</p>
+        <Button onClick={onStart} aria-label={`Abrir las flores de ${name}`}>
+          Ábrelas <span aria-hidden="true">✧</span>
         </Button>
-        <p className={styles.hint}>Con sonido · desliza para descubrirla</p>
+        <p className={styles.hint}>Mejor con sonido</p>
       </div>
     </m.div>
   )
