@@ -20,6 +20,7 @@ export function Finale({ name, from, message, height, onReplay }: Props) {
         {message ? <p className={styles.message}>{message}</p> : null}
         {from ? <p className={styles.from}>— {from}</p> : null}
         <p className={styles.closing}>{CLOSING}</p>
+        {from ? <p className={styles.special}>Si este enlace llegó a ti, es porque eres alguien muy especial para {from} 💛</p> : null}
         <div className={styles.actions}>
           <Button variant="ghost" onClick={onReplay}>
             Ver otra vez
