@@ -1,21 +1,20 @@
-import { CreateForm } from '@/components/home/CreateForm'
 import styles from '@/components/home/Home.module.css'
 
 export const metadata = {
-  title: 'Flores amarillas · 21 de septiembre',
-  description: 'Regala un ramo de flores amarillas hecho de luz, con su nombre.',
+  title: 'Flores amarillas · Xavier Aguas',
+  description: 'Creado por Xavier Aguas.',
+  robots: { index: false },
 }
 
-/** Portada: escribir el nombre y abrir su ramo. */
+/** Portada: solo la firma. Los ramos se abren con su enlace (/para/{nombre}). */
 export default function Home() {
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
-        <p className={styles.kicker}>21 de septiembre</p>
-        <h1 className={styles.title}>Flores amarillas</h1>
-        <p className={styles.lead}>Un ramo de girasoles hecho de luz, que crece con su nombre.</p>
-        <CreateForm />
-      </div>
+      <a className={styles.signature} href="https://xavieraguas.com" target="_blank" rel="noopener">
+        <span className={styles.by}>Creado por</span>
+        <span className={styles.name}>Xavier Aguas</span>
+        <span className={styles.site}>xavieraguas.com</span>
+      </a>
     </main>
   )
 }
