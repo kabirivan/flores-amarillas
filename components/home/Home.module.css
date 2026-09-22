@@ -58,7 +58,8 @@
 .stack {
   display: grid;
   justify-items: center;
-  gap: 40px;
+  gap: 48px;
+  width: 100%;
 }
 
 /* El botón: píldora dorada con halo que late, un brillo que la cruza y un girasol que gira. */
@@ -138,4 +139,78 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .cta, .cta::before, .cta::after, .ctaFlower { animation: none; }
+}
+
+/* Catálogo: diez ramos en tarjetas de cristal oscuro. */
+.catalog {
+  width: min(100%, 1080px);
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+}
+.catalogTitle {
+  margin: 0;
+  font-family: var(--font-script), cursive;
+  font-weight: 400;
+  font-size: clamp(2rem, 7vw, 2.8rem);
+  color: var(--sun);
+}
+.grid {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.card {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 12px 10px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: var(--ink);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.02));
+  border: 1px solid rgb(255 255 255 / 0.08);
+  transition: transform 0.4s var(--ease-out), border-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
+}
+.card:hover,
+.card:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgb(255 210 63 / 0.45);
+  box-shadow: 0 10px 40px rgb(255 182 39 / 0.18);
+}
+.card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.card :global(.mini-bouquet) {
+  width: 100%;
+  max-width: 150px;
+  aspect-ratio: 1;
+}
+.cardName {
+  font-family: var(--font-serif), serif;
+  font-size: 1rem;
+  color: var(--sun);
+  text-align: center;
+}
+.cardCount {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  text-align: center;
+  line-height: 1.35;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }

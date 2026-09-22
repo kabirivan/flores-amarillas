@@ -234,7 +234,26 @@ export function ribbon(curve: THREE.Curve<THREE.Vector3>, opts: { strands: numbe
  * Cabeza de girasol en líneas, en el plano XY con la cara hacia +Z y radio `R`, llevada por
  * `m` a su sitio. Pétalos (haces que se abren y se cierran), disco (doble espiral) y anillo.
  */
-export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 22, perPetal = 12, spirals = 26): Strand[] {
+/** Estilo de una cabeza radial (girasol, margarita, gerbera). */
+export type HeadStyle = {
+  /** Radio del disco, en fracción de R (los pétalos nacen en su borde). */
+  disc: number
+  /** Ancho de cada pétalo, en fracción de R. */
+  width: number
+  petalFrom: string
+  petalTo: string
+  discFrom: string
+  discTo: string
+  ring: string
+}
+
+export const SUNFLOWER: HeadStyle = { disc: 0.3, width: 0.13, petalFrom: '#ff9f1a', petalTo: '#ffe36e', discFrom: '#2a1204', discTo: '#8a3e0c', ring: '#c0600f' }
+/** Margarita amarilla: muchos pétalos finos y claros, botón dorado. */
+export const DAISY: HeadStyle = { disc: 0.2, width: 0.06, petalFrom: '#ffe36e', petalTo: '#fff6c2', discFrom: '#ff8a00', discTo: '#ffc12e', ring: '#ffb627' }
+/** Gerbera: corona densa amarillo intenso, centro oscuro con anillo cobrizo. */
+export const GERBERA: HeadStyle = { disc: 0.24, width: 0.085, petalFrom: '#ffb000', petalTo: '#ffe066', discFrom: '#3a1a06', discTo: '#a8561a', ring: '#e07a10' }
+
+export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 22, perPetal = 12, spirals = 26, style: HeadStyle = SUNFLOWER): Strand[] {
   const out: Strand[] = []
   const tx = (p: THREE.Vector3) => p.applyMatrix4(m)
   const zAxis = new THREE.Vector3(0, 0, 1).transformDirection(m)
@@ -242,9 +261,9 @@ export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 
   for (let k = 0; k < petals; k++) {
     const ring = k % 2 // dos coronas alternas, la de atrás algo más larga
     const a = (k / petals) * Math.PI * 2 + (rand() - 0.5) * 0.12
-    const r0 = R * 0.3
+    const r0 = R * style.disc
     const r1 = R * (ring ? 0.92 : 1) * (0.9 + rand() * 0.15)
-    const w = R * (0.13 + rand() * 0.03)
+    const w = R * (style.width + rand() * 0.03)
     const lines = perPetal
     const ca = Math.cos(a)
     // Cada pétalo es una cinta que se retuerce (entra y sale del plano) a lo largo.
@@ -265,7 +284,7 @@ export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 
         // Se curva hacia atrás en la punta; el giro de la cinta la saca del plano.
         const z = -R * 0.12 * t * t * (ring ? 1.3 : 1) + across * Math.sin(phi) * 0.8 - ring * R * 0.03
         points.push(tx(new THREE.Vector3(ca * r - sa * lat, sa * r + ca * lat, z)))
-        colors.push(lerpColor('#ff9f1a', '#ffe36e', t * 0.85 + Math.abs(u) * 0.25))
+        colors.push(lerpColor(style.petalFrom, style.petalTo, t * 0.85 + Math.abs(u) * 0.25))
       }
       out.push({ points, colors, wob: zAxis.clone().multiplyScalar(R * 0.018), seed: petalSeed + j * 0.004, sheet })
     }
@@ -278,10 +297,10 @@ export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 
       const colors: THREE.Color[] = []
       for (let s = 0; s <= 12; s++) {
         const t = s / 12
-        const r = R * 0.3 * t
+        const r = R * style.disc * t
         const a = a0 + dir * t * 2.4
         points.push(tx(new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r, R * 0.06 * (1 - t * t))))
-        colors.push(lerpColor('#2a1204', '#8a3e0c', t))
+        colors.push(lerpColor(style.discFrom, style.discTo, t))
       }
       out.push({ points, colors, wob: zAxis.clone().multiplyScalar(R * 0.01), seed: rand() })
     }
@@ -289,12 +308,149 @@ export function sunflowerHead(R: number, m: THREE.Matrix4, rand: Rand, petals = 
   // Anillo cobrizo alrededor del disco.
   for (let j = 0; j < 3; j++) {
     const points: THREE.Vector3[] = []
-    const rr = R * (0.29 + j * 0.015)
+    const rr = R * (style.disc - 0.01 + j * 0.015)
     for (let s = 0; s <= 48; s++) {
       const a = (s / 48) * Math.PI * 2
       points.push(tx(new THREE.Vector3(Math.cos(a) * rr, Math.sin(a) * rr, R * 0.02)))
     }
-    out.push({ points, colors: [new THREE.Color('#c0600f')], wob: zAxis.clone().multiplyScalar(R * 0.01), seed: rand() })
+    out.push({ points, colors: [hex(style.ring)], wob: zAxis.clone().multiplyScalar(R * 0.01), seed: rand() })
+  }
+  return out
+}
+
+/**
+ * Rosa: capas de pétalos en espiral, cada pétalo un arco de hilos que sube y se abre en el
+ * borde; las capas de dentro, más altas y cerradas. La cara mira hacia +Z.
+ */
+export function roseHead(R: number, m: THREE.Matrix4, rand: Rand): Strand[] {
+  const out: Strand[] = []
+  const tx = (p: THREE.Vector3) => p.applyMatrix4(m)
+  const zAxis = new THREE.Vector3(0, 0, 1).transformDirection(m)
+  const layers = 5
+  let a0 = rand() * Math.PI * 2
+  for (let L = 0; L < layers; L++) {
+    const n = 2 + L
+    const rL = R * (0.14 + L * 0.19)
+    const zL = R * (0.42 - L * 0.1)
+    const hp = R * (0.26 + L * 0.02)
+    const span = ((Math.PI * 2) / n) * 1.35
+    for (let p = 0; p < n; p++) {
+      const a = a0 + (p / n) * Math.PI * 2
+      const sheet = nextSheet()
+      const seed = rand()
+      for (let k = 0; k < 6; k++) {
+        const v = k / 5
+        const points: THREE.Vector3[] = []
+        const colors: THREE.Color[] = []
+        for (let s = 0; s <= 16; s++) {
+          const t = s / 16
+          const th = a + t * span
+          const bulge = Math.sin(Math.PI * t) ** 0.6
+          const r = rL * (0.85 + 0.15 * bulge) + v * v * R * 0.1 * bulge
+          const z = zL + v * hp * bulge - (1 - bulge) * hp * 0.2
+          points.push(tx(new THREE.Vector3(Math.cos(th) * r, Math.sin(th) * r, z)))
+          colors.push(lerpColor(L < 2 ? '#e89a00' : '#ffc21a', '#fff1a0', v * 0.8 + L * 0.04))
+        }
+        out.push({ points, colors, wob: zAxis.clone().multiplyScalar(R * 0.012), seed: seed + k * 0.004, sheet })
+      }
+    }
+    a0 += 0.9
+  }
+  return out
+}
+
+/** Tulipán: copa de seis pétalos (tres fuera, tres dentro) que suben y se cierran arriba. */
+export function tulipHead(R: number, m: THREE.Matrix4, rand: Rand): Strand[] {
+  const out: Strand[] = []
+  const tx = (p: THREE.Vector3) => p.applyMatrix4(m)
+  const zAxis = new THREE.Vector3(0, 0, 1).transformDirection(m)
+  const H = R * 1.5
+  const a0 = rand() * Math.PI
+  for (let p = 0; p < 6; p++) {
+    const inner = p % 2 === 1
+    const a = a0 + (p / 6) * Math.PI * 2
+    const half = inner ? 0.42 : 0.5
+    const sheet = nextSheet()
+    const seed = rand()
+    for (let k = 0; k < 8; k++) {
+      const u = k / 7 - 0.5
+      const points: THREE.Vector3[] = []
+      const colors: THREE.Color[] = []
+      for (let s = 0; s <= 16; s++) {
+        const t = s / 16
+        const r = R * (0.12 + 0.5 * Math.sin(Math.PI * Math.min(1, t * 0.9)) ** 0.8) * (inner ? 0.9 : 1)
+        const th = a + u * 2 * half * Math.sin(Math.PI * Math.min(1, t * 1.05)) ** 0.5
+        points.push(tx(new THREE.Vector3(Math.cos(th) * r, Math.sin(th) * r, t * H * (inner ? 0.95 : 1))))
+        colors.push(lerpColor('#e0a000', '#fff07a', t * 0.9 + Math.abs(u) * 0.2))
+      }
+      out.push({ points, colors, wob: zAxis.clone().multiplyScalar(R * 0.015), seed: seed + k * 0.004, sheet })
+    }
+  }
+  return out
+}
+
+/** Mimosa: una ramita con borlas; cada borla, tres aros cruzados (se lee como una bolita). */
+export function mimosaHead(R: number, m: THREE.Matrix4, rand: Rand): Strand[] {
+  const out: Strand[] = []
+  const tx = (p: THREE.Vector3) => p.applyMatrix4(m)
+  const zAxis = new THREE.Vector3(0, 0, 1).transformDirection(m)
+  const base = new THREE.Vector3(0, 0, -R * 0.3)
+  const balls = 16 + Math.floor(rand() * 6)
+  for (let b = 0; b < balls; b++) {
+    const a = rand() * Math.PI * 2
+    const d = R * Math.sqrt(rand()) * 0.9
+    const c = new THREE.Vector3(Math.cos(a) * d, Math.sin(a) * d, R * 0.5 * rand())
+    const br = R * (0.08 + rand() * 0.05)
+    // Ramita hasta la borla.
+    out.push({ points: [tx(base.clone()), tx(base.clone().lerp(c, 0.6).add(new THREE.Vector3(0, 0, R * 0.08))), tx(c.clone())], colors: [hex('#5fae5a')], wob: zAxis.clone().multiplyScalar(R * 0.02), seed: rand() })
+    const seed = rand()
+    for (let ring = 0; ring < 3; ring++) {
+      const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(ring * 1.05 + a, ring * 0.7, 0))
+      const points: THREE.Vector3[] = []
+      for (let s = 0; s <= 14; s++) {
+        const th = (s / 14) * Math.PI * 2
+        points.push(tx(new THREE.Vector3(Math.cos(th) * br, Math.sin(th) * br, 0).applyQuaternion(q).add(c)))
+      }
+      out.push({ points, colors: [hex(ring === 1 ? '#ffe34d' : '#ffd000')], wob: zAxis.clone().multiplyScalar(R * 0.015), seed: seed + ring * 0.01 })
+    }
+  }
+  return out
+}
+
+/** Fresia: una espiga que se arquea con trompetitas que se abren de la base a la punta. */
+export function freesiaHead(R: number, m: THREE.Matrix4, rand: Rand): Strand[] {
+  const out: Strand[] = []
+  const tx = (p: THREE.Vector3) => p.applyMatrix4(m)
+  const zAxis = new THREE.Vector3(0, 0, 1).transformDirection(m)
+  const side = rand() < 0.5 ? -1 : 1
+  const at = (t: number) => new THREE.Vector3(side * t * R * 1.3, Math.sin(t * 1.3) * R * 0.7, t * R * 0.25)
+  const spine: THREE.Vector3[] = []
+  for (let s = 0; s <= 16; s++) spine.push(tx(at(s / 16)))
+  out.push({ points: spine, colors: [hex('#6fc05a')], wob: zAxis.clone().multiplyScalar(R * 0.03), seed: rand() })
+  const bells = 7
+  for (let b = 0; b < bells; b++) {
+    const t = 0.12 + (b / (bells - 1)) * 0.88
+    const c = at(t)
+    const open = 1 - t * 0.75 // las de la base, abiertas; las de la punta, capullos
+    const br = R * 0.26 * (0.45 + open * 0.55)
+    const sheetSeed = rand()
+    for (let p = 0; p < 6; p++) {
+      const a = (p / 6) * Math.PI * 2 + rand() * 0.2
+      const sheet = nextSheet()
+      for (let k = 0; k < 3; k++) {
+        const u = k / 2 - 0.5
+        const points: THREE.Vector3[] = []
+        const colors: THREE.Color[] = []
+        for (let s = 0; s <= 8; s++) {
+          const q = s / 8
+          const r = br * q * (0.4 + 0.6 * open)
+          const th = a + u * 0.5 * Math.sin(Math.PI * q)
+          points.push(tx(new THREE.Vector3(Math.cos(th) * r, Math.sin(th) * r, R * 0.1 * q * (1 - open * 0.6)).add(c)))
+          colors.push(lerpColor('#ff9f1a', '#fff3a0', q))
+        }
+        out.push({ points, colors, wob: zAxis.clone().multiplyScalar(R * 0.015), seed: sheetSeed + k * 0.004, sheet })
+      }
+    }
   }
   return out
 }

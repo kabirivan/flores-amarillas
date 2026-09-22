@@ -58,12 +58,17 @@ function pickSpecies(rng: Rng, count: number): Species[] {
   return out
 }
 
-export function generateBouquet(name: string): Bouquet {
+/**
+ * `options.species`: ramo de catálogo con especies y cantidad fijas, en ese orden. Sin opciones, el contrato de siempre: el nombre decide el ramo.
+ */
+export function generateBouquet(name: string, options: { species?: readonly Species[] } = {}): Bouquet {
   const seed = seedFromName(name)
   const rng = createRng(`ramo:${seed}`)
 
-  const count = flowerCount(seed, rng)
-  const species = rng.shuffle(pickSpecies(rng, count))
+  const fixed = options.species
+  const count = fixed ? fixed.length : flowerCount(seed, rng)
+  // Con especies fijas se respeta el orden (quien llama ya las mezcla y necesita saber cuál es cuál).
+  const species = fixed ? [...fixed] : rng.shuffle(pickSpecies(rng, count))
 
   // Abanico: cuantas más flores, más abierto.
   const spread = 22 + count * 1.4

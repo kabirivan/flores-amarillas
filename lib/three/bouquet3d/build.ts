@@ -21,7 +21,8 @@ import { GROUND } from '../particles/shapes'
 import { col, leafGeometry, petalGeometry, photoLeafGeometry, type Bend } from './petals'
 import { atlasUv, createAoUniform, createHeadMaterial, createMaterials, createRevealUniforms, tagMaterials, type Materials } from './materials'
 import { createLightPoints, type LightPoints } from './points'
-import { createStrands, leaf as strandLeaf, ribbon, sunflowerHead, wrapCone, type Strand } from './strands'
+import { DAISY, GERBERA, createStrands, freesiaHead, leaf as strandLeaf, mimosaHead, ribbon, roseHead, sunflowerHead, tulipHead, wrapCone, type Strand } from './strands'
+import type { LineKind } from '@/lib/bouquet/catalog'
 import type { BouquetModels, FlowerModel } from './models'
 import { cyrb128 } from '@/lib/bouquet/prng'
 
@@ -77,7 +78,8 @@ export type Bouquet3D = {
   dispose: () => void
 }
 
-export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}): Bouquet3D {
+/** `kinds`: cómo se dibuja en hilos cada flor (ramos del catálogo); por defecto, girasoles. */
+export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}, kinds: readonly LineKind[] = []): Bouquet3D {
   const { view, bind } = bouquet
   const k = HEIGHT / view.height
   const W = HEIGHT * (view.width / view.height)
@@ -311,12 +313,31 @@ export function buildBouquet3D(bouquet: Bouquet, models: BouquetModels = {}): Bo
     lightFlowers = flowerGroups.map((g, k) => {
       const spec = strandSpecs[k]
       if (!spec) return []
-      const q = new THREE.Quaternion().setFromUnitVectors(Z, spec.facing).multiply(new THREE.Quaternion().setFromAxisAngle(Z, THREE.MathUtils.degToRad(spec.spin)))
+      const kind = kinds[k] ?? 'sunflower'
+      // Rosas, tulipanes y fresias miran más hacia arriba, como en un ramo de verdad.
+      const up = kind === 'tulip' ? 1.6 : kind === 'rose' ? 0.9 : kind === 'freesia' || kind === 'mimosa' ? 0.5 : 0
+      const facing = spec.facing.clone().add(new THREE.Vector3(0, up, 0)).normalize()
+      const q = new THREE.Quaternion().setFromUnitVectors(Z, facing).multiply(new THREE.Quaternion().setFromAxisAngle(Z, THREE.MathUtils.degToRad(spec.spin)))
       const m = new THREE.Matrix4().compose(spec.head, q, new THREE.Vector3(1, 1, 1))
+      const R = spec.R
+      const head =
+        kind === 'rose'
+          ? roseHead(R * 0.62, m, r)
+          : kind === 'tulip'
+            ? tulipHead(R * 0.5, m, r)
+            : kind === 'daisy'
+              ? sunflowerHead(R * 0.78, m, r, 26, 4, 12, DAISY)
+              : kind === 'gerbera'
+                ? sunflowerHead(R * 0.9, m, r, 32, 5, 18, GERBERA)
+                : kind === 'mimosa'
+                  ? mimosaHead(R * 0.85, m, r)
+                  : kind === 'freesia'
+                    ? freesiaHead(R * 0.8, m, r)
+                    : sunflowerHead(R, m, r)
       const all: Strand[] = [
         ...ribbon(spec.curve, { strands: 26, samples: 48, width: 0.34, twist: Math.PI * 3, from: '#1f5a2c', to: '#a6d95f', wob: 0.05, rand: r }),
         ...spec.leaves.flatMap((l) => strandLeaf(l.at, l.dir, l.length, r)),
-        ...sunflowerHead(spec.R, m, r),
+        ...head,
       ]
       return [createStrands(all, g, 0.5) as unknown as LightPoints]
     })

@@ -18,6 +18,7 @@ import { createSpin } from './bouquet3d/controls'
 import { createButterflies } from './butterflies'
 import { createLineGarden } from './garden/lineGarden'
 import type { Bouquet } from '@/lib/bouquet/types'
+import type { LineKind } from '@/lib/bouquet/catalog'
 
 export type BouquetScene = {
   /** Empieza (o vuelve a empezar) a dibujar el ramo. */
@@ -40,7 +41,7 @@ const WRAP = { at: 0.2, dur: 1.8 }
 const FLOWERS = { at: 1.2, span: 3.2, dur: 1.8 }
 const BUTTERFLIES = { at: 5.2, dur: 3 }
 
-export function createBouquetScene(canvas: HTMLCanvasElement, bouquet: Bouquet, options: { harness?: boolean; reduced?: boolean } = {}): BouquetScene {
+export function createBouquetScene(canvas: HTMLCanvasElement, bouquet: Bouquet, options: { harness?: boolean; reduced?: boolean; kinds?: readonly LineKind[] } = {}): BouquetScene {
   const coarse = window.matchMedia('(pointer: coarse)').matches || Math.min(window.innerWidth, window.innerHeight) < 700
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: options.harness === true })
   renderer.setPixelRatio(Math.min(coarse ? 2 : 2, window.devicePixelRatio || 1))
@@ -53,7 +54,7 @@ export function createBouquetScene(canvas: HTMLCanvasElement, bouquet: Bouquet, 
   scene.add(sky.mesh)
 
   // El ramo de hilos (las mallas solo sirven de molde; no se dibujan).
-  const flowers = buildBouquet3D(bouquet)
+  const flowers = buildBouquet3D(bouquet, {}, options.kinds)
   flowers.lightUp(1500, bouquet.seed)
   flowers.setReveal(0)
   flowers.setReal(0)
